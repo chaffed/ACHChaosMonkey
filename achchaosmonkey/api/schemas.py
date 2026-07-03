@@ -16,3 +16,26 @@ class GenerateResponse(BaseModel):
     num_entries: int
     num_fraud: int
     num_miscoded: int
+
+
+class ValidateRequest(BaseModel):
+    file_id: int | None = None
+    batch_id: int | None = None
+
+
+class EvaluationSummaryResponse(BaseModel):
+    precision: float
+    recall: float
+    f1: float
+    accuracy: float
+    true_positives: int
+    false_positives: int
+    false_negatives: int
+    true_negatives: int
+
+
+class ValidateResponse(BaseModel):
+    run_id: int
+    num_entries: int
+    num_flagged: int
+    evaluation: EvaluationSummaryResponse
