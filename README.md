@@ -22,6 +22,13 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
+Alternatively, install pinned versions from a requirements file (no editable install):
+
+```bash
+pip install -r requirements.txt        # runtime only
+pip install -r requirements-dev.txt    # runtime + test/lint tooling
+```
+
 ## Run
 
 ```bash
