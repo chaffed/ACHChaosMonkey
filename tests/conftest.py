@@ -1,4 +1,6 @@
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from achchaosmonkey.nacha.checksum import make_routing_number
 from achchaosmonkey.nacha.records import AchFileRecord, Batch, BatchHeader, EntryDetail, FileHeader
@@ -44,3 +46,37 @@ def build_sample_file(num_entries: int = 2) -> AchFileRecord:
 @pytest.fixture
 def sample_file_record():
     return build_sample_file()
+
+
+@pytest.fixture
+def db_session():
+    from sqlalchemy.pool import StaticPool
+
+    from achchaosmonkey.db.base import Base
+
+    engine = create_engine(
+        "sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    Base.metadata.create_all(engine)
+    TestSession = sessionmaker(bind=engine)
+    session = TestSession()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+@pytest.fixture
+def client(db_session):
+    from fastapi.testclient import TestClient
+
+    from achchaosmonkey.api.deps import get_db
+    from achchaosmonkey.main import app
+
+    def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
